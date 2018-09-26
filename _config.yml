@@ -1,0 +1,12 @@
+exclude:
+  - Gemfile
+  - Gemfile.lock
+
+permalink: /posts/:title
+
+gems:
+  - jekyll-slim
+
+name: Property Testing
+url: https://github.com/njichev/property-testing-presentation
+description: Property Testing for fun and profit

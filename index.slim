@@ -1,0 +1,291 @@
+---
+layout: slide
+title: Property Testing
+---
+
+section.center
+  h1 👋
+
+section.center data-background="#BF5A5B"
+  h2.white Evening!
+
+section.center data-background="#BF5A5B"
+  img.inline src="images/logo.png"
+
+section.center
+  p: a(href="https:/github.com/njichev/") #njichev
+
+section
+
+section.center data-background="#"
+  p: a(href="https://elixir-lang.bg/materials/posts") Elixir Course @ FMI
+  a href="https://elixir-lang.bg/materials/posts"
+    img.inline src="images/elixir-course.png"
+
+section.center data-background="#2196f3"
+  a.fragment href="http://partialconf.com"
+    img.inline src="images/partial.svg"
+
+section.center data-background="#E93C55"
+  a(href="http://partialconf.com")
+    img.inline src="images/partial.svg"
+
+section
+
+section.center data-background="#af0c8c"
+  h2.white.fragment Property Testing
+
+section.center
+  h1 Testing
+
+section.center
+  h2 Why do we test?
+  h4.fragment
+    p
+      | no  tests == 🙁 
+    p
+      | yes tests == 🙂 
+
+section
+  h2 Example
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      test "&Enum.min/1 works fine" do
+        assert 1 = Enum.min([1, 2, 3, 4, 5])
+        assert -1 = Enum.min([3, 8, 7, -1])
+        assert -901 = Enum.min([-10, -5, -901])
+        assert 0 = Enum.min([0])
+      end
+
+
+section.center
+  h2 Unit tests are good...
+  h5.fragment but sometimes it's hard to think of all the edge cases
+
+section.center data-background="#af0c8c"
+  h1.white Enter the realm of Properties
+
+section
+  h1 What is a Property?
+  blockquote.fragment
+    | rules that describe a program’s behaviour 
+    | one single rule should logically be applicable to all 
+    | kinds of input and output for a given piece of code
+
+section.center
+  h1 Examples properties
+  ul.fragment
+    li a + b = b + a
+    li ATM
+    li UI testing
+
+section.center
+  h2 Then what is Property Testing?
+  blockquote.fragment
+    | the act of writing down 
+    | properties of our code
+
+
+section
+  h4 Example
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      check all a <- number(), b <- number() do
+        assert a + b == b + a
+      end
+
+section
+  h4 If we get back to our `min` example
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      check all list <- list_of(integer()) do
+        least = Enum.min(list)
+        Enum.each(list, fn x ->
+          assert least =< x
+        end)
+      end
+
+
+section.center data-background="#E93C55"
+  h1.white Is it good tho? 🤔
+
+section.center
+  h3 "Success stories"
+
+section.center
+  p: a(href="https://project-fifo.net/") project-fifo
+  p: a(href="https://github.com/google/leveldb") google's leveldb
+  p: a(href="http://www.erlang-factory.com/upload/presentations/255/RiakInside.pdf") riakDB
+  p: a(href="https://en.wikipedia.org/wiki/AUTOSAR") even in cars
+
+section.center
+  h2 Now that you're on board..
+  h4.fragment properties are hard 😤
+
+section.center
+  h2 but they change
+  h2 the way we think about code
+
+section.center
+  h2 so I will help you find them
+
+section.center data-background="#2196f3"
+  h1.white Types of Properties
+
+section.center
+  h2 I. Modeling
+
+section
+  h2 Example
+  h4: pre(contenteditable=true): code.Elixir contenteditable=true
+    '
+      Enum.min(x) == hd(Enum.sort(x))
+
+section
+  h2 Useful when:
+  ul.fragment
+    li implementing data structures
+    li integration tests
+
+section.center
+  h2 Oracles
+  blockquote.fragment
+    | oracle is a reference implementation, 
+    | and can therefore act as a pre-written model. 
+
+section.center
+  p
+    | my_code() == oracle_code()
+
+section.center
+  h2 II. Invariants
+  h4.fragment Alternate wording of properties
+
+section
+  h2 Remember?
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      check all list <- list_of(integer()) do
+        least = Enum.min(list)
+        Enum.each(list, fn x ->
+          assert least =< x
+        end)
+      end
+
+section.center
+  h4 Some invariants for sorting:
+  ul.fragment
+    li assert length(list) == length(sorted)
+    li assert same_elements?(list, sorted)
+    li assert same_elements?(sorted, list)
+
+section.center
+  h2 III. Symmetric Properties
+  p.fragment tend to work well whenever two pieces of codes are written that do opposite actions
+  p.fragment encoder + decoder
+
+section
+  h1 Straight out of JASON
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      check all string <- string(:printable) do
+        assert decode(encode(string)) == string
+      end
+
+      check all integer <- integer() do
+        assert decode(encode(integer)) == integer
+      end
+
+
+
+section.center data-background="#2196f3"
+  h1.white Tools 🔧
+  h4.fragment.white in stream_data
+
+section.center data-background="#BF5A5B"
+  h1.white Generators
+
+section.center
+  ul
+    li integer()
+    li float()
+    li atom()
+    li string(:ascii)
+
+section.center
+  ul
+    li iex> Enum.take(integer(), 4)
+    li
+      | [1, 0, -3, 1]
+
+section.center data-background="#BF5A5B"
+  h1.white Combinators
+
+section.center
+  ul
+    li one_of()
+    li frequency()
+    li list_of()
+    li map_of()
+    li map()
+    li tree()
+
+section.center
+  h3 Example
+  ul
+    li number() = one_of([integer(), float()])
+    li pos_int() = map(integer(), &abs/1)
+
+
+section.center
+  pre(contenteditable=true): code.elixir contenteditable=true
+    '
+      def timeout() do
+        frequency([
+          {9, non_negative_integer()},
+          {1, constant(:infinity)}
+        ])
+      end
+
+section.center data-background="#BF5A5B"
+  h1.white Shrinking
+  blockquote.fragment.white
+    | is the mechanism by which we simplify failure cases 
+    | to a minimal reproducible failure
+
+section.center
+  p
+    | -317037091 -> 0
+  p
+    | [-371313871, 0, 8714984, ...] -> [0, 1]
+
+section.center
+  p All generators tend to shrink to a
+  p "neutral value"
+
+section.center
+  p Not every generator can shrink :(
+
+section.center data-background="#2196f3"
+  h1.white Conclusions
+
+section.center
+  p unit + properties
+
+section.center
+  p speed of our test suite
+
+section.center data-background="#000"
+  p.white That's it!
+
+section.center
+  h4 Interested and want to learn more?
+
+section.center
+  p: a(href="https://www.cs.tufts.edu/~nr/cs257/archive/john-hughes/quick.pdf") QuickCheck paper
+  p: a(href="http://propertesting.com") propertesting
+  p: a(href="https://github.com/whatyouhide/stream_data") stream_data
+  p Stateful Properties
+
+/Tools in other languages
+/History
